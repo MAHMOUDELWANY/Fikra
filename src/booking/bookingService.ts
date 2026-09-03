@@ -33,17 +33,48 @@ export const bookingService = {
    */
   async submitBooking(data: BookingFormData): Promise<BookingConfirmationData> {
     const result = await bookingRepository.submitBooking(data);
-    if (!result.success || !result.confirmation) {
+    if (!result.success) {
       throw new Error(result.error || 'Unable to complete your booking. Please try again.');
     }
-    return result.confirmation;
+    
+    const details = result.bookingDetails;
+    return {
+      bookingReference: result.referenceCode!,
+      managementToken: result.managementToken,
+      createdAt: new Date().toISOString(),
+      mode: details.mode,
+      serviceName: details.serviceName,
+      learnerName: details.learnerName || details.studentName,
+      parentName: details.parentName,
+      contactEmail: details.email,
+      contactWhatsapp: details.whatsapp,
+      date: data.date,
+      timeDisplay: data.timeSlot.timeDisplay,
+      timezone: data.timezone,
+      durationMinutes: data.duration,
+      cairoTimeDisplay: details.cairoTimeDisplay,
+      feeAmountUsd: details.feeAmountUsd,
+      isFreeTrial: details.mode === 'trial',
+      zoomDetails: {
+        platform: 'Zoom',
+        meetingLinkPlaceholder: details.zoomMeetingLink || 'https://zoom.us/j/mahmoud-teaching-room',
+        instructions: [
+          'Please ensure your microphone and camera are working before joining.',
+          'Try to join a few minutes early to settle in.',
+          'Find a quiet, well-lit place if possible.'
+        ]
+      }
+    } as BookingConfirmationData;
   },
 
-  /**
-   * Looks up a booking by reference code.
-   */
   async lookupBooking(refCode: string, managementToken?: string): Promise<MockBookingRecord | null> {
-    return bookingRepository.lookupBooking(refCode, managementToken);
+    const data = await bookingRepository.lookupBooking(refCode, managementToken);
+    if (!data) return null;
+    return {
+      ...data,
+      learnerName: (data as any).learnerName || (data as any).studentName || 'Student',
+      whatsapp: (data as any).whatsapp || 'hidden'
+    } as MockBookingRecord;
   },
 
   /**
@@ -63,21 +94,29 @@ export const bookingService = {
     newSlot: TimeSlot,
     managementToken?: string
   ): Promise<{ success: boolean; message: string }> {
-    return bookingRepository.rescheduleBooking(refCode, newDate, newSlot, managementToken);
+    const booking = await this.lookupBooking(refCode, managementToken);
+    if (!booking) {
+      return { success: false, message: 'Booking not found or unauthorized.' };
+    }
+    return bookingRepository.rescheduleBooking(
+      refCode,
+      managementToken || '',
+      newDate,
+      newSlot.time24,
+      booking.timezone,
+      booking.durationMinutes
+    );
   },
 
-  /**
-   * Cancels an eligible booking.
-   */
   async cancelBooking(refCode: string, reason?: string, managementToken?: string): Promise<{ success: boolean; message: string }> {
-    return bookingRepository.cancelBooking(refCode, reason, managementToken);
+    return bookingRepository.cancelBooking(refCode, managementToken || '', reason);
   },
 
   /**
    * Returns sample bookings for interactive testing in the UI.
    */
   getTestBookings(): MockBookingRecord[] {
-    const sessionItems = bookingRepository.getLocalSessionBookings();
+    const sessionItems = bookingRepository.mockBookingStore;
     return [...sessionItems, ...getSampleExistingBookings()];
   }
 };
