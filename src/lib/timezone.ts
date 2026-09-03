@@ -48,9 +48,11 @@ export function calculateUtcTimes(
   }
 
   // Validate or fallback timezone safely
-  const effectiveZone = timezone && DateTime.now().setZone(timezone).isValid
-    ? timezone
-    : 'America/New_York';
+  // Validate timezone strictly
+  if (!timezone || !DateTime.now().setZone(timezone).isValid) {
+    throw new Error('A valid timezone is required.');
+  }
+  const effectiveZone = timezone;
 
   // Construct local DateTime strictly inside the student's IANA timezone
   const localDateTime = DateTime.fromObject(

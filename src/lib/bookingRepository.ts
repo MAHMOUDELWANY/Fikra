@@ -162,7 +162,6 @@ export const bookingRepository = {
             email: contactEmail,
             whatsapp: contactWhatsapp
           };
-          this.mockBookingStore.push(bookingResult as any);
           return {
             success: true,
             referenceCode: atomicResult.referenceCode,
@@ -203,7 +202,7 @@ export const bookingRepository = {
         return {
           id: data.reference,
           reference: data.reference,
-          managementToken: data.managementToken,
+          managementToken: managementToken,
           mode: data.mode,
           serviceName: data.serviceName,
           studentName: data.learnerName,

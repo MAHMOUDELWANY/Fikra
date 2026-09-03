@@ -121,6 +121,18 @@ export const StepDateTime: React.FC<StepDateTimeProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Demo Mode Banner */}
+      <div className="bg-yellow-50 text-yellow-800 p-4 rounded-lg flex items-start gap-3 border border-yellow-200">
+        <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+        <div>
+          <h4 className="font-medium text-sm">Demo Availability Mode</h4>
+          <p className="text-sm mt-1 opacity-90">
+            {lang === 'en' 
+              ? 'Real calendar integration is pending. The times shown below are generated for demonstration purposes.'
+              : 'ربط التقويم الحقيقي قيد التنفيذ. الأوقات المعروضة أدناه هي لأغراض العرض التوضيحي.'}
+          </p>
+        </div>
+      </div>
       {/* Timezone Reassurance Banner with quick switcher */}
       <div className="p-3.5 rounded-2xl bg-white dark:bg-[#231D28] border border-[#D5D0CA] dark:border-[#3E3545] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 text-xs">
