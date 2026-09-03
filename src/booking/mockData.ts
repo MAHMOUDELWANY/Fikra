@@ -351,8 +351,10 @@ export function calculateLessonFee(serviceId: string, duration: LessonDuration, 
   return hourlyRate; // 60 min = baseline hourly rate (approx $7 or $10)
 }
 
+import { calculateCairoEquivalent } from '../lib/timezone';
+
 // Generate realistic mock availability for 21 days from today
-export function generateMockAvailability(baseDate = new Date()): DayAvailability[] {
+export function generateMockAvailability(baseDate = new Date(), timezone = 'America/New_York'): DayAvailability[] {
   const days: DayAvailability[] = [];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -388,21 +390,27 @@ export function generateMockAvailability(baseDate = new Date()): DayAvailability
       continue;
     }
 
-    // Standard available slots
-    const slots: TimeSlot[] = [
-      // Morning
-      { id: `${dateString}-0900`, time24: '09:00', timeDisplay: '09:00 AM', period: 'morning', available: true, cairoTimeEquiv: '04:00 PM' },
-      { id: `${dateString}-1030`, time24: '10:30', timeDisplay: '10:30 AM', period: 'morning', available: i % 3 !== 0, cairoTimeEquiv: '05:30 PM' },
-      { id: `${dateString}-1145`, time24: '11:45', timeDisplay: '11:45 AM', period: 'morning', available: true, cairoTimeEquiv: '06:45 PM' },
-      // Afternoon
-      { id: `${dateString}-1400`, time24: '14:00', timeDisplay: '02:00 PM', period: 'afternoon', available: true, cairoTimeEquiv: '09:00 PM' },
-      { id: `${dateString}-1530`, time24: '15:30', timeDisplay: '03:30 PM', period: 'afternoon', available: i % 2 === 0, cairoTimeEquiv: '10:30 PM' },
-      { id: `${dateString}-1700`, time24: '17:00', timeDisplay: '05:00 PM', period: 'afternoon', available: true, cairoTimeEquiv: '12:00 AM' },
-      // Evening
-      { id: `${dateString}-1830`, time24: '18:30', timeDisplay: '06:30 PM', period: 'evening', available: true, cairoTimeEquiv: '01:30 AM' },
-      { id: `${dateString}-2000`, time24: '20:00', timeDisplay: '08:00 PM', period: 'evening', available: i % 4 !== 0, cairoTimeEquiv: '03:00 AM' },
-      { id: `${dateString}-2115`, time24: '21:15', timeDisplay: '09:15 PM', period: 'evening', available: true, cairoTimeEquiv: '04:15 AM' }
+    // Standard available slots with dynamic Cairo equivalent computation
+    const rawTimes = [
+      { time24: '09:00', timeDisplay: '09:00 AM', period: 'morning' as const, available: true },
+      { time24: '10:30', timeDisplay: '10:30 AM', period: 'morning' as const, available: i % 3 !== 0 },
+      { time24: '11:45', timeDisplay: '11:45 AM', period: 'morning' as const, available: true },
+      { time24: '14:00', timeDisplay: '02:00 PM', period: 'afternoon' as const, available: true },
+      { time24: '15:30', timeDisplay: '03:30 PM', period: 'afternoon' as const, available: i % 2 === 0 },
+      { time24: '17:00', timeDisplay: '05:00 PM', period: 'afternoon' as const, available: true },
+      { time24: '18:30', timeDisplay: '06:30 PM', period: 'evening' as const, available: true },
+      { time24: '20:00', timeDisplay: '08:00 PM', period: 'evening' as const, available: i % 4 !== 0 },
+      { time24: '21:15', timeDisplay: '09:15 PM', period: 'evening' as const, available: true }
     ];
+
+    const slots: TimeSlot[] = rawTimes.map((slot) => ({
+      id: `${dateString}-${slot.time24.replace(':', '')}`,
+      time24: slot.time24,
+      timeDisplay: slot.timeDisplay,
+      period: slot.period,
+      available: slot.available,
+      cairoTimeEquiv: calculateCairoEquivalent(dateString, slot.time24, timezone)
+    }));
 
     days.push({
       dateString,

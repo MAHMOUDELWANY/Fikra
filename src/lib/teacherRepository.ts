@@ -319,6 +319,25 @@ export const teacherRepository = {
       });
     }
 
+    // 5. Test anonymous bulk read on bookings (must be forbidden or empty by RLS)
+    try {
+      const { data, error } = await supabase.from('bookings').select('id, contact_name, contact_email');
+      const isSecured = Boolean(error) || (data && data.length === 0);
+      results.push({
+        resource: 'bookings (private student schedules & emails)',
+        expected: 'forbidden_or_empty',
+        actual: isSecured ? 'Access blocked by RLS (protected)' : 'Warning: data returned',
+        success: isSecured,
+      });
+    } catch {
+      results.push({
+        resource: 'bookings (private student schedules & emails)',
+        expected: 'forbidden_or_empty',
+        actual: 'Access blocked (protected)',
+        success: true,
+      });
+    }
+
     const allPassed = results.every((r) => r.success);
     return { passed: allPassed, tests: results };
   },

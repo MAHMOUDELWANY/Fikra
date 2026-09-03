@@ -57,10 +57,12 @@ export const servicesRepository = {
   },
 
   /**
-   * Retrieves a single service by ID
+   * Retrieves a single service by ID (supports both hyphenated and underscore formats)
    */
   async getServiceById(id: string): Promise<ServiceOption | null> {
+    if (!id) return null;
     const all = await this.getActiveServices();
-    return all.find((s) => s.id === id) || null;
+    const cleanTarget = id.toLowerCase().replace(/[-_]/g, '');
+    return all.find((s) => s.id.toLowerCase().replace(/[-_]/g, '') === cleanTarget) || null;
   },
 };

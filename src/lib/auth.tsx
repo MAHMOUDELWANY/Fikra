@@ -19,10 +19,18 @@ export const TeacherAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const isConfigured = isSupabaseConfigured();
+  const isProduction = Boolean((import.meta as any).env?.PROD);
 
   useEffect(() => {
     if (!isConfigured) {
-      // Check local session storage for mock teacher login in preview/offline mode
+      // In production, mock authentication is strictly forbidden
+      if (isProduction) {
+        console.error('[Security] Production environment detected without Supabase configuration. Teacher authentication disabled.');
+        setLoading(false);
+        return;
+      }
+
+      // Local development preview only (non-production)
       const mockTeacher = sessionStorage.getItem('mahmoud_teacher_authenticated');
       if (mockTeacher === 'true') {
         setUser({
@@ -54,7 +62,7 @@ export const TeacherAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
 
     return () => subscription.unsubscribe();
-  }, [isConfigured]);
+  }, [isConfigured, isProduction]);
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     if (!email || !password) {
@@ -62,7 +70,16 @@ export const TeacherAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     if (!isConfigured) {
-      // Demo / development teacher authentication
+      // In production, mock authentication is strictly forbidden
+      if (isProduction) {
+        return {
+          success: false,
+          error: 'Teacher authentication is unavailable: Supabase credentials are not configured in this production environment.',
+        };
+      }
+
+      // Local development preview only
+      console.warn('[Development] Authenticating with local development mock.');
       if (email.toLowerCase().includes('mahmoud') || email.toLowerCase().includes('admin') || email.toLowerCase() === 'mhmwdlwany4222@gmail.com') {
         sessionStorage.setItem('mahmoud_teacher_authenticated', 'true');
         setUser({

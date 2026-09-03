@@ -23,7 +23,7 @@ export const bookingService = {
    */
   async getAvailability(timezone: string): Promise<DayAvailability[]> {
     await new Promise((resolve) => setTimeout(resolve, 200));
-    return generateMockAvailability();
+    return generateMockAvailability(new Date(), timezone);
   },
 
   /**
