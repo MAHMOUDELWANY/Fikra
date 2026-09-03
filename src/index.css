@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-lavender: #B8A9C9;
+  --color-sage: #87A878;
+  --color-cream: #F5E6D3;
+  --color-stone: #D5D0CA;
+  --color-plum: #6B5B73;
+
+  /* Legacy semantic mappings pointed to exact palette */
+  --color-ivory: #F5E6D3;
+  --color-pearl: #FFFFFF;
+  --color-sage-soft: #87A878;
+  --color-sage-deep: #6B5B73;
+  --color-sage-mist: #EDE5D8;
+  --color-eucalyptus: #D5D0CA;
+  --color-champagne: #B8A9C9;
+  --color-sand: #D5D0CA;
+  --color-graphite: #362E3B;
+  
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Amiri', -apple-system, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  --canvas-bg: #F5E6D3;
+  --surface-bg: #FFFFFF;
+  --surface-subtle: #EDE3D4;
+  --text-main: #362E3B;
+  --text-muted: #6B5B73;
+  --border-light: #D5D0CA;
+  --border-sage: #87A878;
+}
+
+:root.dark {
+  color-scheme: dark;
+  --canvas-bg: #1E1923;
+  --surface-bg: #29232F;
+  --surface-subtle: #231D28;
+  --text-main: #F5E6D3;
+  --text-muted: #D5D0CA;
+  --border-light: #3E3545;
+  --border-sage: #87A878;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--canvas-bg);
+  color: var(--text-main);
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #8FAE9B50;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6F907D80;
+}
+
+/* Typography baseline */
+body {
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-editorial {
+  font-family: var(--font-serif);
+}
+
+.font-arabic-calligraphic {
+  font-family: 'Amiri', serif;
+}
+
+.font-arabic-modern {
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+[dir="rtl"] {
+  font-family: var(--font-arabic);
+}
+[dir="rtl"] .font-editorial {
+  font-family: 'Amiri', serif;
+}
+

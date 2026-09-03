@@ -1,0 +1,6 @@
+{
+  "name": "Mahmoud | 1-on-1 Quran, Arabic & Islamic Studies",
+  "description": "Personalized 1-on-1 teaching in Quran reading, Tajweed, Arabic language, and Islamic Studies directly with Mahmoud for international learners and families.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
