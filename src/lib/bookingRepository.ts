@@ -179,6 +179,7 @@ export const bookingRepository = {
 
     // Generate unique reference code: MHM-XXXXX
     let refCode = `MHM-${Math.floor(10000 + Math.random() * 90000)}`;
+    let managementToken: string | undefined = undefined;
 
     // 5. Database Persistence (Supabase)
     if (isSupabaseConfigured()) {
@@ -318,8 +319,13 @@ export const bookingRepository = {
               console.warn('Could not schedule reminders:', remErr);
             }
           }
-        } else if (atomicResult && (atomicResult as any).referenceCode) {
-          refCode = (atomicResult as any).referenceCode;
+        } else if (atomicResult) {
+          if ((atomicResult as any).referenceCode) {
+            refCode = (atomicResult as any).referenceCode;
+          }
+          if ((atomicResult as any).managementToken) {
+            managementToken = (atomicResult as any).managementToken;
+          }
         }
       } catch (dbErr: any) {
         console.error('Database failure during booking persistence:', dbErr);
@@ -342,6 +348,7 @@ export const bookingRepository = {
     // 6. Build Confirmation Payload
     const confirmation: BookingConfirmationData = {
       bookingReference: refCode,
+      managementToken,
       createdAt: new Date().toISOString(),
       mode: data.mode,
       serviceName,
@@ -381,6 +388,7 @@ export const bookingRepository = {
     // Save to local cache for instant session lookup
     this.saveToLocalSession({
       reference: refCode,
+      managementToken,
       serviceName,
       learnerName,
       parentName,
@@ -400,21 +408,24 @@ export const bookingRepository = {
    * Looks up a booking by reference code.
    * Securely queries via RPC or database, with local fallback for preview.
    */
-  async lookupBooking(refCode: string): Promise<MockBookingRecord | null> {
+  async lookupBooking(refCode: string, managementToken?: string): Promise<MockBookingRecord | null> {
     const cleanRef = refCode.trim().toUpperCase();
     if (!cleanRef) return null;
+    const token = managementToken || this.getLocalManagementToken(cleanRef);
 
     if (isSupabaseConfigured()) {
       try {
         // 1. Try secure RPC
         const { data: rpcData, error: rpcError } = await supabase.rpc('get_booking_by_reference', {
           p_reference_code: cleanRef,
+          p_management_token: token || undefined,
         });
 
         if (!rpcError && rpcData) {
           const rec = rpcData as any;
           return {
-            reference: rec.reference,
+            reference: rec.reference || cleanRef,
+            managementToken: rec.managementToken || token,
             serviceName: rec.serviceName || '1-on-1 Lesson',
             learnerName: rec.learnerName,
             parentName: rec.parentName || undefined,
@@ -439,6 +450,7 @@ export const bookingRepository = {
           const service = await servicesRepository.getServiceById(data.service_id);
           return {
             reference: data.reference_code,
+            managementToken: token,
             serviceName: service ? service.name : '1-on-1 Lesson',
             learnerName: data.contact_name,
             parentName: data.parent_name || undefined,
@@ -471,8 +483,10 @@ export const bookingRepository = {
    * Cancels a booking if eligible under the 3-hour policy rule.
    * Enforced in both the database RPC and the client application.
    */
-  async cancelBooking(refCode: string, reason?: string): Promise<{ success: boolean; message: string }> {
-    const booking = await this.lookupBooking(refCode);
+  async cancelBooking(refCode: string, reason?: string, managementToken?: string): Promise<{ success: boolean; message: string }> {
+    const cleanRef = refCode.trim().toUpperCase();
+    const token = managementToken || this.getLocalManagementToken(cleanRef);
+    const booking = await this.lookupBooking(cleanRef, token);
     if (!booking) {
       return { success: false, message: 'Booking reference not found.' };
     }
@@ -487,12 +501,23 @@ export const bookingRepository = {
 
     if (isSupabaseConfigured()) {
       try {
-        const { error } = await supabase.rpc('cancel_booking_by_reference', {
-          p_reference_code: refCode.toUpperCase(),
-          p_reason: reason || 'Cancelled by student through portal',
-        });
+        let rpcError = null;
+        if (token) {
+          const res = await supabase.rpc('cancel_booking_by_management', {
+            p_reference_code: cleanRef,
+            p_management_token: token,
+            p_reason: reason || 'Cancelled by student through portal',
+          });
+          rpcError = res.error;
+        } else {
+          const res = await supabase.rpc('cancel_booking_by_reference', {
+            p_reference_code: cleanRef,
+            p_reason: reason || 'Cancelled by student through portal',
+          });
+          rpcError = res.error;
+        }
 
-        if (error) {
+        if (rpcError) {
           // If RPC not available, direct update
           const { error: updateErr } = await supabase
             .from('bookings')
@@ -500,7 +525,7 @@ export const bookingRepository = {
               status: 'cancelled',
               cancellation_reason: reason || 'Cancelled by student through portal',
             })
-            .eq('reference_code', refCode.toUpperCase());
+            .eq('reference_code', cleanRef);
 
           if (updateErr) {
             return { success: false, message: `Cancellation failed: ${updateErr.message}` };
@@ -512,11 +537,11 @@ export const bookingRepository = {
       }
     }
 
-    this.updateLocalStatus(refCode, 'cancelled');
+    this.updateLocalStatus(cleanRef, 'cancelled');
 
     return {
       success: true,
-      message: `Booking ${refCode} has been cancelled. If you wish to resume lessons later, Mahmoud will be pleased to welcome you.`,
+      message: `Booking ${cleanRef} has been cancelled. If you wish to resume lessons later, Mahmoud will be pleased to welcome you.`,
     };
   },
 
@@ -527,9 +552,12 @@ export const bookingRepository = {
   async rescheduleBooking(
     refCode: string,
     newDate: string,
-    newSlot: TimeSlot
+    newSlot: TimeSlot,
+    managementToken?: string
   ): Promise<{ success: boolean; message: string }> {
-    const booking = await this.lookupBooking(refCode);
+    const cleanRef = refCode.trim().toUpperCase();
+    const token = managementToken || this.getLocalManagementToken(cleanRef);
+    const booking = await this.lookupBooking(cleanRef, token);
     if (!booking) {
       return { success: false, message: 'Booking reference not found.' };
     }
@@ -551,14 +579,27 @@ export const bookingRepository = {
 
     if (isSupabaseConfigured()) {
       try {
-        const { error } = await supabase.rpc('reschedule_booking_by_reference', {
-          p_reference_code: refCode.toUpperCase(),
-          p_new_start: scheduledStartUtc,
-          p_new_end: scheduledEndUtc,
-          p_cairo_time_display: cairoTimeDisplay,
-        });
+        let rpcError = null;
+        if (token) {
+          const res = await supabase.rpc('reschedule_booking_by_management', {
+            p_reference_code: cleanRef,
+            p_management_token: token,
+            p_new_start: scheduledStartUtc,
+            p_new_end: scheduledEndUtc,
+            p_cairo_time_display: cairoTimeDisplay,
+          });
+          rpcError = res.error;
+        } else {
+          const res = await supabase.rpc('reschedule_booking_by_reference', {
+            p_reference_code: cleanRef,
+            p_new_start: scheduledStartUtc,
+            p_new_end: scheduledEndUtc,
+            p_cairo_time_display: cairoTimeDisplay,
+          });
+          rpcError = res.error;
+        }
 
-        if (error) {
+        if (rpcError) {
           // Direct update fallback if RPC not installed
           const { error: updateErr } = await supabase
             .from('bookings')
@@ -568,7 +609,7 @@ export const bookingRepository = {
               cairo_time_display: cairoTimeDisplay,
               status: 'rescheduled',
             })
-            .eq('reference_code', refCode.toUpperCase());
+            .eq('reference_code', cleanRef);
 
           if (updateErr) {
             return { success: false, message: `Rescheduling failed: ${updateErr.message}` };
@@ -580,17 +621,23 @@ export const bookingRepository = {
       }
     }
 
-    this.updateLocalStatus(refCode, 'rescheduled', scheduledStartUtc);
+    this.updateLocalStatus(cleanRef, 'rescheduled', scheduledStartUtc);
 
     return {
       success: true,
-      message: `Booking ${refCode} was successfully rescheduled to ${newDate} at ${newSlot.timeDisplay}.`,
+      message: `Booking ${cleanRef} was successfully rescheduled to ${newDate} at ${newSlot.timeDisplay}.`,
     };
   },
 
   // -------------------------------------------------------------
   // Local Session Storage Cache for demo fallback and instant display
   // -------------------------------------------------------------
+  getLocalManagementToken(refCode: string): string | undefined {
+    const list = this.getLocalSessionBookings();
+    const item = list.find((b) => b.reference.toUpperCase() === refCode.toUpperCase());
+    return item?.managementToken;
+  },
+
   getLocalSessionBookings(): MockBookingRecord[] {
     try {
       const stored = sessionStorage.getItem('mahmoud_session_bookings');

@@ -10,17 +10,17 @@ INSERT INTO public.services (
     display_order, is_active, hourly_rate_usd, supported_durations, trial_allowed
 ) VALUES
 -- Quran
-('quran_reading', 'quran', 'Quran Reading', 'تلاوة القرآن الكريم',
+('quran-reading', 'quran', 'Quran Reading', 'تلاوة القرآن الكريم',
  'Master accurate letter articulation, phonetic flow, and direct Mushaf reading from Noorani basics to fluency.',
  'تأسيس القراءة الصحيحة من المصحف، وضبط مخارج الحروف للمبتدئين وغير الناطقين بالعربية.',
  1, true, 7.00, '{30, 45, 60}', true),
 
-('quran_memorization', 'quran', 'Quran Memorization', 'حفظ القرآن الكريم',
+('quran-memorization', 'quran', 'Quran Memorization', 'حفظ القرآن الكريم',
  'Systematic memorization schedules tailored to your pace with consistent revision targets and retention benchmarks.',
  'منهجية منظمة لحفظ السور والآيات مع تثبيت الحفظ القديم ووضع أهداف مراجعة أسبوعية.',
  2, true, 7.00, '{30, 45, 60}', true),
 
-('quran_revision', 'quran', 'Quran Revision', 'مراجعة وتثبيت القرآن',
+('quran-revision', 'quran', 'Quran Revision', 'مراجعة وتثبيت القرآن',
  'Dedicated review sessions for huffadh to systematically strengthen past juz, eliminate doubts, and fortify memory.',
  'جلسات مخصصة للحفاظ لمراجعة الأجزاء السابقة وتثبيت المتشابهات وضمان عدم النسيان.',
  3, true, 7.00, '{30, 45, 60}', true),
@@ -31,7 +31,7 @@ INSERT INTO public.services (
  4, true, 7.00, '{30, 45, 60}', true),
 
 -- Islamic Studies
-('islamic_studies', 'islamic_studies', 'General Islamic Studies', 'الدراسات الإسلامية العامة',
+('islamic-studies', 'islamic_studies', 'General Islamic Studies', 'الدراسات الإسلامية العامة',
  'Comprehensive and age-appropriate Islamic curriculum covering essentials of faith, manners, and daily worship.',
  'منهج إسلامي متكامل ومناسب لكل الأعمار يغطي أركان الإسلام والأخلاق والآداب اليومية.',
  5, true, 7.00, '{30, 45, 60}', true),
@@ -52,22 +52,22 @@ INSERT INTO public.services (
  8, true, 7.00, '{30, 45, 60}', true),
 
 -- Arabic
-('arabic', 'arabic', 'Arabic for Non-Native Speakers', 'العربية لغير الناطقين بها',
- 'Step-by-step immersion from alphabet fundamentals to functional comprehension of written and spoken Arabic.',
- 'تأسيس شامل ومتدرج يبدأ من الحروف والأصوات وحتى بناء الجمل والتراكيب اللغوية السليمة.',
+('arabic-foundations', 'arabic', 'Arabic for Beginners (Reading, Writing & Phonics)', 'أساسيات اللغة العربية للمبتدئين',
+ 'A gentle, systematic start for non-Arabic speakers and reverts to build confidence letter by letter.',
+ 'مخصص لمن لا يعرف قراءة الحروف أو المسلمين الجدد لبناء الأساس بثقة.',
  9, true, 7.00, '{30, 45, 60}', true),
 
-('modern_standard_arabic', 'arabic', 'Modern Standard Arabic (Fusha)', 'العربية الفصحى المعاصرة',
+('modern-standard-arabic', 'arabic', 'Modern Standard Arabic (Fusha)', 'العربية الفصحى المعاصرة',
  'Formal academic Arabic for literature, Islamic classical texts, Quranic comprehension, and modern media.',
  'العربية الفصحى للأغراض الأكاديمية وقراءة النصوص الإسلامية والتراثية وفهم لغة القرآن والإعلام.',
  10, true, 7.00, '{30, 45, 60}', true),
 
-('arabic_conversation', 'arabic', 'Arabic Conversation & Fluency', 'المحادثة والطلاقة باللغة العربية',
+('arabic-conversation', 'arabic', 'Arabic Conversation & Fluency', 'المحادثة والطلاقة باللغة العربية',
  'Interactive speaking drills to overcome hesitation, expand active vocabulary, and converse naturally in real scenarios.',
  'تدريبات شفهية وتطبيقية لكسر حاجز الخوف والتحدث بطلاقة في مختلف المواقف اليومية.',
  11, true, 7.00, '{30, 45, 60}', true),
 
-('egyptian_arabic', 'arabic', 'Egyptian Colloquial Arabic (Ammiya)', 'اللهجة المصرية الحوارية',
+('egyptian-arabic', 'arabic', 'Egyptian Colloquial Arabic (Ammiya)', 'اللهجة المصرية الحوارية',
  'Learn the most widely understood spoken dialect across the Arab world for daily family, cultural, and travel interaction.',
  'تعلم اللهجة الأكثر فهماً وانتشاراً في العالم العربي للتواصل العائلي والسياحة والثقافة.',
  12, true, 7.00, '{30, 45, 60}', true),
@@ -78,11 +78,16 @@ INSERT INTO public.services (
  'تطوير مهارات التحدث والمحادثة وبناء الثقة في التواصل باللغة الإنجليزية مع معلم حاصل على C1 في IELTS.',
  13, true, 10.00, '{30, 45, 60}', true)
 ON CONFLICT (id) DO UPDATE SET
+    category = EXCLUDED.category,
     title = EXCLUDED.title,
     arabic_title = EXCLUDED.arabic_title,
     short_description = EXCLUDED.short_description,
     arabic_description = EXCLUDED.arabic_description,
-    hourly_rate_usd = EXCLUDED.hourly_rate_usd;
+    display_order = EXCLUDED.display_order,
+    is_active = EXCLUDED.is_active,
+    hourly_rate_usd = EXCLUDED.hourly_rate_usd,
+    supported_durations = EXCLUDED.supported_durations,
+    trial_allowed = EXCLUDED.trial_allowed;
 
 -- 2. INSERT TESTIMONIALS (Curated Authentic Feedback)
 INSERT INTO public.testimonials (

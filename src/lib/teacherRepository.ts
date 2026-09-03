@@ -64,7 +64,36 @@ export const teacherRepository = {
    */
   async getBookings(statusFilter?: string): Promise<DbBooking[]> {
     if (!isSupabaseConfigured()) {
-      return [];
+      return [
+        {
+          id: 'mock-b-1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          reference_code: 'MHM-12345',
+          booking_type: 'trial',
+          service_id: 'quran-reading',
+          student_id: null,
+          lead_id: 'mock-l-1',
+          contact_name: 'Ahmad M.',
+          contact_email: 'ahmad@example.com',
+          contact_whatsapp: '+1234567890',
+          parent_name: null,
+          learner_age_group: '18-29',
+          audience: 'adult',
+          learning_goal: 'Learn to read fluently',
+          duration_minutes: 30,
+          scheduled_start: new Date(Date.now() + 86400000).toISOString(),
+          scheduled_end: new Date(Date.now() + 86400000 + 1800000).toISOString(),
+          cairo_time_display: '05:00 PM',
+          student_timezone: 'America/New_York',
+          status: 'confirmed',
+          zoom_join_url: 'https://zoom.us/j/mock',
+          zoom_host_url: 'https://zoom.us/s/mock',
+          zoom_meeting_id: 'mock',
+          calendar_event_id: null,
+          cancellation_reason: null
+        }
+      ] as any;
     }
 
     try {
@@ -91,7 +120,21 @@ export const teacherRepository = {
    */
   async getLeads(): Promise<DbLead[]> {
     if (!isSupabaseConfigured()) {
-      return [];
+      return [
+        {
+          id: 'mock-l-1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          name: 'Ahmad M.',
+          email: 'ahmad@example.com',
+          whatsapp: '+1234567890',
+          timezone: 'America/New_York',
+          source: 'website',
+          status: 'trial_booked',
+          conversion_probability: 'high',
+          notes: 'Wants to learn fluent reading'
+        }
+      ] as any;
     }
 
     try {

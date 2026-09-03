@@ -21,6 +21,8 @@ import { TeacherAuthProvider } from './lib/auth';
 import { Language, ThemeMode } from './types';
 import { BookingMode } from './booking/types';
 
+import { LearningGuide } from './components/LearningGuide';
+
 export default function App() {
   const [lang, setLang] = useState<Language>('en');
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -189,6 +191,9 @@ export default function App() {
           onClose={() => setTeacherModalOpen(false)}
           lang={lang}
         />
+
+        {/* AI Learning Guide */}
+        <LearningGuide lang={lang} />
       </div>
     </TeacherAuthProvider>
   );

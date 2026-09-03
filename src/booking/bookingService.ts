@@ -42,8 +42,8 @@ export const bookingService = {
   /**
    * Looks up a booking by reference code.
    */
-  async lookupBooking(refCode: string): Promise<MockBookingRecord | null> {
-    return bookingRepository.lookupBooking(refCode);
+  async lookupBooking(refCode: string, managementToken?: string): Promise<MockBookingRecord | null> {
+    return bookingRepository.lookupBooking(refCode, managementToken);
   },
 
   /**
@@ -57,15 +57,20 @@ export const bookingService = {
   /**
    * Reschedules an eligible booking.
    */
-  async rescheduleBooking(refCode: string, newDate: string, newSlot: TimeSlot): Promise<{ success: boolean; message: string }> {
-    return bookingRepository.rescheduleBooking(refCode, newDate, newSlot);
+  async rescheduleBooking(
+    refCode: string,
+    newDate: string,
+    newSlot: TimeSlot,
+    managementToken?: string
+  ): Promise<{ success: boolean; message: string }> {
+    return bookingRepository.rescheduleBooking(refCode, newDate, newSlot, managementToken);
   },
 
   /**
    * Cancels an eligible booking.
    */
-  async cancelBooking(refCode: string, reason?: string): Promise<{ success: boolean; message: string }> {
-    return bookingRepository.cancelBooking(refCode, reason);
+  async cancelBooking(refCode: string, reason?: string, managementToken?: string): Promise<{ success: boolean; message: string }> {
+    return bookingRepository.cancelBooking(refCode, reason, managementToken);
   },
 
   /**

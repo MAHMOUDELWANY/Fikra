@@ -84,6 +84,7 @@ export interface BookingFormData {
 
 export interface BookingConfirmationData {
   bookingReference: string;
+  managementToken?: string;
   createdAt: string;
   mode: BookingMode;
   serviceName: string;
@@ -108,6 +109,7 @@ export interface BookingConfirmationData {
 
 export interface MockBookingRecord {
   reference: string;
+  managementToken?: string;
   serviceName: string;
   learnerName: string;
   parentName?: string;

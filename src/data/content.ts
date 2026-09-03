@@ -128,7 +128,7 @@ export const SERVICES_DATA: ServicePillar[] = [
         recommendedFrequency: '1 session per week'
       },
       {
-        id: 'islamic-studies-general',
+        id: 'islamic-studies',
         name: 'Foundations of Islamic Studies',
         category: 'islamic_studies',
         tagline: 'A comprehensive starter curriculum designed for young learners and busy adults.',
@@ -224,7 +224,7 @@ export const SERVICES_DATA: ServicePillar[] = [
     description: 'Personalized English coaching for Arabic speakers and international learners seeking fluency, exam readiness, or workplace confidence.',
     services: [
       {
-        id: 'english-coaching',
+        id: 'english',
         name: '1-on-1 English Language Coaching',
         category: 'english',
         tagline: 'Build conversational fluency, clean grammar, and confident professional English.',
